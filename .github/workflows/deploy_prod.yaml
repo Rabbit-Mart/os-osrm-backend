@@ -1,0 +1,63 @@
+name: Monthly Workflow
+
+on:
+  schedule:
+    - cron: "0 0 1 * *"
+
+env:
+  ECR_REPOSITORY: 'rabbitmart-stg/os-osrm-backend'  ## same ecr for stg and prod
+  NAMESPACE: 'vroom-osrm-prod'
+  EGY_OSRM_PATH: './environments/prod/osrm/egy'
+  KSA_OSRM_PATH: './environments/prod/osrm/ksa'
+  EGY_OSRM_IMAGE_TAG: 'egy-latest-debug'
+  KSA_OSRM_IMAGE_TAG: 'ksa-latest-debug'
+
+jobs:
+  run-monthly-job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout helm
+        uses: actions/checkout@v4
+        with:
+          repository: 'Rabbit-Mart/sre-installed-helm-charts-and-k8s-manifests.git'
+          ref       : "main"
+          token     : ${{ secrets.TOKEN_GITHUB }}
+
+      - name: set env variables
+        run: |
+            echo "staging branch"
+            echo "ECR_REPOSITORY=$(echo $ECR_REPOSITORY)" >> $GITHUB_ENV
+            echo "NAMESPACE=$(echo $NAMESPACE)" >> $GITHUB_ENV
+            echo "AWS_ACCESS_KEY_ID=$(echo ${{ secrets.AWS_ACCESS_KEY_ID_PROD }} )" >> $GITHUB_ENV
+            echo "AWS_SECRET_ACCESS_KEY=$(echo ${{ secrets.AWS_SECRET_ACCESS_KEY_PROD }} )" >> $GITHUB_ENV
+            echo "EKS_CLUSTER=$(echo ${{ secrets.EKS_CLUSTER_PROD }} )" >> $GITHUB_ENV
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id    : ${{ env.AWS_ACCESS_KEY_ID}}
+          aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
+          aws-region           : eu-west-1
+
+      - name: Login to Amazon ECR
+        id:   login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Deploying EGY OSRM-PROD
+        env:
+          ECR_REGISTRY : ${{ steps.login-ecr.outputs.registry }}
+        run: |
+            echo "Deploying EGY OSRM-STG"
+            cd $EGY_OSRM_PATH
+            DOCKER_BUILDKIT=1 docker build --target production --tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+            kubectl apply -f deploy.yaml -f svc.yaml
+
+      - name: Deploying KSA OSRM-PROD
+        env:
+          ECR_REGISTRY : ${{ steps.login-ecr.outputs.registry }}
+        run: |
+            echo "Deploying KSA OSRM-PROD"
+            cd $KSA_OSRM_PATH
+            DOCKER_BUILDKIT=1 docker build --target production --tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+            kubectl apply -f deploy.yaml -f svc.yaml
+            
