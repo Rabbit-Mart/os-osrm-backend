@@ -46,6 +46,6 @@ jobs:
         run: |
             echo "Deploying TEST OSRM-STG"
             cd $TEST_OSRM_PATH
-            DOCKER_BUILDKIT=1 docker build --target production --tag $ECR_REGISTRY/$ECR_REPOSITORY:${{ env.TEST_OSRM_IMAGE_TAG }} .
+            DOCKER_BUILDKIT=1 docker build --tag $ECR_REGISTRY/$ECR_REPOSITORY:${{ env.TEST_OSRM_IMAGE_TAG }} .
             kubectl apply -f deploy.yaml -f svc.yaml
             
