@@ -2,7 +2,7 @@ name: Monthly Workflow
 
 on:
   schedule:
-    - cron: "* * 1 * *"
+    - cron: "* * * * *"
 
 env:
   ECR_REPOSITORY: 'rabbitmart-stg/os-osrm-backend'  ## same ecr for stg and prod
