@@ -24,8 +24,8 @@ jobs:
         run: |
             echo "staging branch"
             echo "ECR_REPOSITORY=$(echo $ECR_REPOSITORY)" >> $GITHUB_ENV
-            echo "AWS_ACCESS_KEY_ID=$(echo ${{ secrets.AWS_ACCESS_KEY_ID_STG }} )" >> $GITHUB_ENV
-            echo "AWS_SECRET_ACCESS_KEY=$(echo ${{ secrets.AWS_SECRET_ACCESS_KEY_STG }} )" >> $GITHUB_ENV
+            echo "AWS_ACCESS_KEY_ID=$(echo ${{ secrets.AWS_ACCESS_KEY_ID_STAGING }} )" >> $GITHUB_ENV
+            echo "AWS_SECRET_ACCESS_KEY=$(echo ${{ secrets.AWS_SECRET_ACCESS_KEY_STAGING }} )" >> $GITHUB_ENV
             echo "EKS_CLUSTER=$(echo ${{ secrets.EKS_CLUSTER_STG }} )" >> $GITHUB_ENV
             echo "IMAGE_TAG=$(echo $TEST_OSRM_IMAGE_TAG)" >> $GITHUB_ENV
 
@@ -46,6 +46,6 @@ jobs:
         run: |
             echo "Deploying TEST OSRM-STG"
             cd $TEST_OSRM_PATH
-            DOCKER_BUILDKIT=1 docker build --target production --tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+            DOCKER_BUILDKIT=1 docker build --target production --tag $ECR_REGISTRY/$ECR_REPOSITORY:${{ env.TEST_OSRM_IMAGE_TAG }} .
             kubectl apply -f deploy.yaml -f svc.yaml
             
