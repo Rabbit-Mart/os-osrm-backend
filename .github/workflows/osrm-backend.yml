@@ -571,7 +571,7 @@ jobs:
         npm run nodejs-tests
 
     - name: Upload test logs
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: failure()
       with:
         name: logs
